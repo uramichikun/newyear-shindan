@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>令和八年 AIキャラ診断 (Standalone)</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Zen+Maru+Gothic:wght@400;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config to match globals.css -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ny-red': '#c92a2a',
+                        'ny-red-light': '#ff6b6b',
+                        'ny-gold': '#c5a059',
+                        'ny-gold-light': '#e6c278',
+                        'ny-gold-dark': '#8a6d3b',
+                        'ny-white': '#ffffff',
+                        'ny-cream': '#fdfbf7',
+                        'ny-navy': '#1e2130',
+                    },
+                    fontFamily: {
+                        serif: ['"Shippori Mincho"', 'ui-serif', 'Georgia', 'serif'],
+                        sans: ['"Zen Maru Gothic"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-gentle': 'bounceGentle 3s infinite',
+                    },
+                    keyframes: {
+                        bounceGentle: {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* CSS Variables & Global Styles from globals.css */
+        :root {
+            --color-ny-red: #c92a2a;
+            --color-ny-red-light: #ff6b6b;
+            --color-ny-gold: #c5a059;
+            --color-ny-gold-light: #e6c278;
+            --color-ny-gold-dark: #8a6d3b;
+            --color-ny-white: #ffffff;
+            --color-ny-cream: #fdfbf7;
+            --color-ny-navy: #1e2130;
+        }
+
+        body {
+            background-color: var(--color-ny-cream);
+            color: var(--color-ny-navy);
+            /* Japanese Paper (Washi) Texture with Gold Flakes */
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(197, 160, 89, 0.2) 2px, transparent 2.5px),
+                radial-gradient(circle at 90% 80%, rgba(201, 42, 42, 0.1) 2px, transparent 2.5px),
+                url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+            background-size: 120px 120px, 150px 150px, 200px 200px;
+            background-position: 0 0, 40px 40px, 0 0;
+            font-family: "Shippori Mincho", serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* Utility Classes */
+        .text-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+
+        .card-festive {
+            background-color: white;
+            border: 1px solid #e7e5e4;
+            /* stone-200 */
+            border-radius: 0.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+
+        .btn-festive-primary {
+            position: relative;
+            background-color: #c92a2a;
+            color: white;
+            font-weight: 700;
+            font-size: 1.125rem;
+            padding: 1rem 3rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            letter-spacing: 0.1em;
+            background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.1));
+            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+            cursor: pointer;
+        }
+
+        .btn-festive-primary:hover {
+            background-color: #b01e1e;
+            transform: translateY(-1px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-festive-primary:active {
+            transform: translateY(1px);
+        }
+
+        .btn-festive-secondary {
+            background-color: transparent;
+            color: var(--color-ny-navy);
+            font-weight: 700;
+            padding: 0.75rem 2rem;
+            border: 2px solid var(--color-ny-navy);
+            transition: background-color 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-festive-secondary:hover {
+            background-color: var(--color-ny-navy);
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse-slow {
+
+            0%,
+            100% {
+                opacity: 0.2;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .animate-pulse-slow {
+            animation: pulse-slow 3s infinite;
+        }
+
+        @keyframes bounce-gentle {
+
+            0%,
+            100% {
+                transform: translateY(-5%);
+            }
+
+            50% {
+                transform: translateY(0);
+            }
+        }
+
+        .animate-bounce-gentle {
+            animation: bounce-gentle 3s infinite;
+        }
+
+        /* Hidden/Visible Utility */
+        .hidden-screen {
+            display: none !important;
+        }
+
+        /* Custom Scrollbar for nicer embedded look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c5a059;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="antialiased font-serif flex flex-col min-h-screen">
+
+    <main id="app" class="flex-1 flex flex-col items-center w-full">
+        <!-- Screens will be injected here -->
+    </main>
+
+    <script>
+        // --- DATA (Copied from source) ---
+        const questions = [
+            { id: 1, question: "新しいAIツールが話題になったら、あなたはどうする？", answers: [{ text: "すぐにダウンロードして試してみる！", scores: { pioneer: 3, creator: 1, builder: 1 } }, { text: "まずはレビューや評判を調べてから", scores: { analyst: 3, learner: 2 } }, { text: "周りの人が使い始めたら試してみる", scores: { communicator: 2, mypace: 2 } }, { text: "本当に必要になったら使う", scores: { mypace: 3, writer: 1 } }] },
+            { id: 2, question: "AIを使って一番やりたいことは？", answers: [{ text: "画像や動画など、作品を作りたい", scores: { creator: 3, pioneer: 1 } }, { text: "情報を調べたり、分析したい", scores: { analyst: 3, learner: 2 } }, { text: "文章を書いたり、翻訳したい", scores: { writer: 3, communicator: 1 } }, { text: "作業を自動化して楽にしたい", scores: { builder: 3, analyst: 1 } }] },
+            { id: 3, question: "AIに求めるものは？", answers: [{ text: "とにかく新しくて面白い体験", scores: { pioneer: 3, creator: 2 } }, { text: "効率化と時間の節約", scores: { builder: 3, analyst: 2 } }, { text: "クリエイティブな表現のサポート", scores: { creator: 3, writer: 2 } }, { text: "学びや成長のパートナー", scores: { learner: 3, communicator: 1 } }] },
+            { id: 4, question: "わからないことがあったとき、どうする？", answers: [{ text: "まずAIに聞いてみる", scores: { learner: 3, analyst: 1 } }, { text: "自分で調べてから、AIも参考にする", scores: { analyst: 2, writer: 2, mypace: 1 } }, { text: "詳しい人に聞いてみる", scores: { communicator: 3, mypace: 1 } }, { text: "いろいろ試しながら解決する", scores: { pioneer: 2, builder: 2, creator: 1 } }] },
+            { id: 5, question: "AIを使った成果、どうしたい？", answers: [{ text: "SNSでシェアして反応を見たい", scores: { communicator: 3, creator: 2, pioneer: 1 } }, { text: "自分の作品としてコツコツ積み上げたい", scores: { creator: 2, writer: 2, mypace: 2 } }, { text: "仕事や実用的なことに活かしたい", scores: { builder: 2, analyst: 2, writer: 1 } }, { text: "自分の学びや成長に繋げたい", scores: { learner: 3, mypace: 1 } }] },
+            { id: 6, question: "休日の過ごし方は？", answers: [{ text: "新しいお店や場所を開拓する", scores: { pioneer: 3, communicator: 1 } }, { text: "趣味の創作活動に没頭する", scores: { creator: 3, writer: 2 } }, { text: "本を読んだり勉強したりする", scores: { learner: 3, analyst: 1 } }, { text: "のんびりマイペースに過ごす", scores: { mypace: 3, builder: 1 } }] },
+            { id: 7, question: "チームで作業するとき、あなたの役割は？", answers: [{ text: "新しいアイデアを出す人", scores: { pioneer: 2, creator: 3 } }, { text: "情報を整理して分析する人", scores: { analyst: 3, builder: 1 } }, { text: "みんなの意見をまとめる人", scores: { communicator: 3, writer: 1 } }, { text: "黙々と作業を進める人", scores: { builder: 2, mypace: 2, writer: 1 } }] },
+            { id: 8, question: "AIの回答が間違っていたら？", answers: [{ text: "「へー、こういう間違いするんだ」と興味を持つ", scores: { pioneer: 3, learner: 2 } }, { text: "なぜ間違えたか原因を分析する", scores: { analyst: 3, builder: 1 } }, { text: "プロンプトを工夫して正しい答えを引き出す", scores: { writer: 2, creator: 2, builder: 1 } }, { text: "まあそういうこともあるよね、と気にしない", scores: { mypace: 3, communicator: 1 } }] },
+            { id: 9, question: "友達にAIを勧めるなら、どう言う？", answers: [{ text: "「これ最新で面白いから試してみて！」", scores: { pioneer: 3, communicator: 2 } }, { text: "「こういう使い方すると便利だよ」と具体的に教える", scores: { builder: 2, analyst: 2, communicator: 1 } }, { text: "「私はこう使ってるよ」と体験を共有する", scores: { communicator: 3, writer: 1 } }, { text: "聞かれたら教えるけど、積極的には勧めない", scores: { mypace: 3, learner: 1 } }] },
+            { id: 10, question: "AIとの理想の付き合い方は？", answers: [{ text: "最先端を追い続けるパートナー", scores: { pioneer: 3, analyst: 1 } }, { text: "一緒に作品を作る相棒", scores: { creator: 3, writer: 1 } }, { text: "なんでも聞ける先生", scores: { learner: 3, communicator: 1 } }, { text: "必要なときに助けてくれるアシスタント", scores: { mypace: 3, builder: 2 } }] }
+        ];
+
+        const characterTypes = [
+            { id: "frontrunner", name: "フロントランナー型", image: "./char_frontrunner_v2.jpg", title: "時代を駆ける先駆者", description: "新しい技術やトレンドに誰よりも早く飛びつくタイプ。失敗を恐れずに挑戦する姿勢は、周りの人々をインスパイアします。2026年は、その行動力が大きな成果を生む年になるでしょう。", detailedTraits: ["好奇心が旺盛で即断即決", "新しいもの好き", "リスクを取ることを恐れない", "周りを巻き込むエネルギーがある", "飽きっぽい一面も"], strengths: ["圧倒的な行動力", "情報感度の高さ", "変化への適応力", "カリスマ性"], weaknesses: ["詳細を詰めるのが苦手", "継続力が課題", "コスト度外視になりがち"], luckyAITools: ["ChatGPT", "Claude", "Midjourney"], advice2026: "「とりあえずやってみる」精神が最強の武器。ただし、次々と浮かぶアイデアを整理し、着実に実行してくれるパートナーを見つけると、成果が最大化します。" },
+            { id: "artist", name: "アーティスト型", image: "./char_artist_v2.jpg", title: "感性豊かな創造主", description: "AIを「画材」や「楽器」のように使いこなし、独自の表現を追求するタイプ。あなたの作り出す世界観は、AIと人間の共創の美しさを体現しています。", detailedTraits: ["美意識が高い", "独自のこだわりがある", "感情やニュアンスを大切にする", "AIの出力に「魂」を込めようとする", "論理より直感重視"], strengths: ["独自の世界観", "表現力の高さ", "人の心を動かす力", "審美眼"], weaknesses: ["論理的説明が苦手", "こだわりすぎて完成が遅れる", "批判に敏感"], luckyAITools: ["Midjourney", "Suno", "Runway"], advice2026: "AIはあなたの創造性を拡張する「魔法の杖」。技術的な正確さよりも、あなた自身の「好き」や「違和感」を大切にすることで、唯一無二の作品が生まれます。" },
+            { id: "strategist", name: "ストラテジスト型", image: "./char_strategist_v2.jpg", title: "冷徹なる参謀", description: "AIを分析や効率化の武器として最大限に活用するタイプ。膨大なデータから法則を見出し、最短ルートで成果を出すことに長けています。", detailedTraits: ["論理的思考が得意", "効率化オタク", "数字やデータが好き", "感情に流されない判断力", "計画的で慎重"], strengths: ["問題解決能力", "構造化・体系化", "リスク管理", "客観性"], weaknesses: ["突発的な変化に弱い", "理屈っぽくなる", "直感的な判断を軽視"], luckyAITools: ["Perplexity", "Julius AI", "Notion AI"], advice2026: "AIへの指示出し（プロンプトエンジニアリング）のスキルは随一。AIが出した答えを「疑う」視点を持つことで、より精度の高い意思決定ができるようになります。" },
+            { id: "influencer", name: "インフルエンサー型", image: "./char_influencer_v2.jpg", title: "共感を呼ぶ伝道師", description: "AIの便利さや面白さを、誰にでもわかる言葉で翻訳して広めるタイプ。人と人、人とAIを繋ぐハブとして、コミュニティの中心になります。", detailedTraits: ["コミュニケーション能力が高い", "教え上手・褒め上手", "トレンドを噛み砕くのが得意", "人との繋がりを大切にする", "広く浅く知っている"], strengths: ["拡散力・発信力", "親しみやすさ", "ネットワーキング", "共感力"], weaknesses: ["情報の正確さが甘いことも", "八方美人になりがち", "深い技術理解は苦手"], luckyAITools: ["Canva", "Gamma", "Claude"], advice2026: "あなたの言葉には、AIへの「恐怖心」を「ワクワク」に変える力があります。難しい専門用語を使わず、実体験に基づいたストーリーを語ることが成功の鍵です。" }
+        ];
+
+        const fortuneMessages = {
+            "大吉": ["2026年、AIとの相性は最高潮！直感を信じて新しいことに挑戦すると、思わぬ幸運が舞い込みます。", "巳年のエネルギーがあなたを後押し！AI活用で大きな飛躍ができる年になりそう。", "絶好調の一年！AIを味方につけて、周りを驚かせるような成果を上げられるでしょう。"],
+            "中吉": ["2026年は着実に成長できる年。焦らずAIと向き合うことで、確かな手応えを感じられます。", "順調な一年の予感。コツコツとAI活用を続けることで、気づけば大きな成果に。", "バランスの取れた一年。新しい挑戦と安定の両立で、充実した年になりそう。"],
+            "吉": ["2026年は学びの年。AIを通じて新しい発見があり、視野が広がります。", "穏やかながらも実りある一年。自分のペースでAIを楽しむのがラッキーの鍵。", "成長のきっかけが訪れる年。AIをきっかけに新しい出会いがあるかも。"],
+            "小吉": ["2026年は土台を固める年。焦らず基礎からAIを学ぶと、来年以降に大きく花開きます。", "マイペースが吉。周りと比べず、自分らしいAI活用を見つける一年に。", "じっくり取り組む年。急がば回れの精神で、着実にスキルアップできます。"]
+        };
+
+        const luckyElements = {
+            months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+            colors: ["金色", "赤", "青", "緑", "紫", "オレンジ", "ピンク", "白"],
+            actions: ["新しいAIツールを試す", "AIについて発信する", "AIで作品を作る", "AIで学習を始める", "AIを使って自動化する", "AIの情報を誰かと共有する", "AIで文章を書いてみる", "AIにじっくり質問する"]
+        };
+
+        // --- APP LOGIC ---
+        let state = {
+            screen: 'start', // start, question, reveal, result
+            qIndex: 0,
+            answers: [],
+            answerIndices: [],
+            result: null
+        };
+
+        const app = document.getElementById('app');
+
+        function render() {
+            app.innerHTML = '';
+
+            if (state.screen === 'start') {
+                renderStartScreen();
+            } else if (state.screen === 'question') {
+                renderQuestionScreen();
+            } else if (state.screen === 'reveal') {
+                renderRevealScreen();
+            } else if (state.screen === 'result') {
+                renderResultScreen();
+            }
+
+            window.scrollTo(0, 0);
+        }
+
+        function startGame() {
+            state = { screen: 'question', qIndex: 0, answers: [], answerIndices: [], result: null };
+            render();
+        }
+
+        function selectAnswer(score, idx) {
+            state.answers.push(score);
+            state.answerIndices.push(idx);
+
+            if (state.qIndex < questions.length - 1) {
+                state.qIndex++;
+                render(); // Re-render for next question
+            } else {
+                calculateDiagnosis();
+            }
+        }
+
+        function calculateDiagnosis() {
+            // Logic form diagnosis.ts
+            const scores = { frontrunner: 0, artist: 0, strategist: 0, influencer: 0 };
+            state.answers.forEach(ans => {
+                Object.entries(ans).forEach(([trait, val]) => {
+                    if (["pioneer", "learner"].includes(trait)) scores.frontrunner += val;
+                    else if (["creator", "mypace"].includes(trait)) scores.artist += val;
+                    else if (["analyst", "builder"].includes(trait)) scores.strategist += val;
+                    else if (["communicator", "writer"].includes(trait)) scores.influencer += val;
+                });
+            });
+
+            let topChar = characterTypes[0], max = -1;
+            let winners = [];
+            characterTypes.forEach(c => {
+                if (scores[c.id] > max) { max = scores[c.id]; winners = [c]; }
+                else if (scores[c.id] === max) { winners.push(c); }
+            });
+            const seed = state.answerIndices.reduce((a, b) => a + b, 0);
+            const winner = winners[seed % winners.length];
+
+            // Fortune
+            let fScore = 0;
+            state.answerIndices.forEach((idx, i) => {
+                fScore += (3 - idx) * 2;
+                if (i === 0 || i === 5) fScore += (3 - idx);
+            });
+            if (new Set(state.answerIndices).size >= 3) fScore += 4;
+            if (state.answerIndices[5] === 0 || state.answerIndices[5] === 1) fScore += 2;
+
+            let fortune = "小吉";
+            if (fScore >= 28) fortune = "大吉";
+            else if (fScore >= 20) fortune = "中吉";
+            else if (fScore >= 12) fortune = "吉";
+
+            // Details
+            const mIdx = (state.answerIndices[0] + state.answerIndices[1] + state.answerIndices[2]) % luckyElements.months.length;
+            const cIdx = (state.answerIndices[2] + state.answerIndices[3] + state.answerIndices[4]) % luckyElements.colors.length;
+            const aIdx = (state.answerIndices[1] + state.answerIndices[4] + state.answerIndices[5]) % luckyElements.actions.length;
+            const msgIdx = (state.answerIndices[0] + state.answerIndices[5]) % fortuneMessages[fortune].length;
+
+            state.result = {
+                character: winner,
+                fortuneDetail: {
+                    fortune: fortune,
+                    luckyMonth: luckyElements.months[mIdx],
+                    luckyColor: luckyElements.colors[cIdx], // Ensure color name
+                    luckyAction: luckyElements.actions[aIdx],
+                    fortuneMessage: fortuneMessages[fortune][msgIdx]
+                }
+            };
+            state.screen = 'reveal';
+            render();
+        }
+
+        function showResult() {
+            state.screen = 'result';
+            render();
+        }
+
+        // --- RENDERERS ---
+
+        function renderStartScreen() {
+            const div = document.createElement('div');
+            div.className = "flex-1 flex flex-col items-center justify-center text-center p-6 relative w-full min-h-[85vh] overflow-hidden fade-in";
+            div.innerHTML = `
+                <!-- Background Circle -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#c92a2a] opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="w-full max-w-lg relative z-10">
+                    <!-- Vertical Text -->
+                    <div class="absolute top-0 -left-6 md:-left-12 opacity-80 hidden md:block">
+                        <div class="text-vertical text-lg tracking-[0.5em] font-serif text-ny-gold-dark h-full">
+                            令和八年・二〇二六
+                        </div>
+                    </div>
+
+                    <div class="card-festive p-8 md:p-12 relative flex flex-col items-center border-t-8 border-t-ny-red">
+                        <!-- Mizuhiki Top -->
+                        <div class="text-ny-gold mb-4 opacity-80">
+                            <svg width="40" height="20" viewBox="0 0 40 20" class="mx-auto"><path d="M0 10 Q20 20 40 10" fill="none" stroke="currentColor" stroke-width="2" /><path d="M0 10 Q20 0 40 10" fill="none" stroke="currentColor" stroke-width="2" /></svg>
+                        </div>
+                        
+                        <h1 class="text-4xl md:text-6xl font-black text-ny-navy mb-2 font-serif tracking-tight leading-tight">
+                            <span class="block text-xl md:text-2xl text-ny-red mb-2 tracking-widest font-normal">新春特別企画</span>
+                            AIキャラ<br />診断
+                        </h1>
+                        <div class="w-16 h-1 bg-gradient-to-r from-transparent via-ny-gold to-transparent mb-8"></div>
+
+                        <!-- Mascot -->
+                        <div class="relative w-64 h-64 mx-auto mb-10 group">
+                             <div class="relative w-full h-full rounded-full overflow-hidden border-4 border-white shadow-2xl z-10 bg-white">
+                                <img src="./mascot.jpg" alt="Mascot" class="object-cover object-top w-full h-full hover:scale-105 transition-transform duration-500">
+                             </div>
+                             <div class="absolute -bottom-4 -right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md border border-gray-100 text-3xl z-20 animate-bounce-gentle">🎍</div>
+                             <div class="absolute -top-2 -left-2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md border border-gray-100 text-2xl z-20 animate-bounce-gentle" style="animation-delay: 1s;">🌸</div>
+                        </div>
+
+                        <p class="text-gray-700 font-medium mb-10 leading-loose">
+                            あけましておめでとうございます。<br />
+                            2026年のあなたの運勢と、<br />
+                            <strong class="text-ny-red bg-orange-50 px-1 text-lg">AI活用スタイル</strong>を占います。
+                        </p>
+
+                        <button onclick="startGame()" class="btn-festive-primary w-full group">
+                            <span class="text-2xl font-serif">診断を始める</span>
+                        </button>
+                    </div>
+                </div>
+                <footer class="mt-12 text-ny-navy/60 text-xs tracking-widest font-serif">© 2026 NEW YEAR AI PROJECT</footer>
+            `;
+            app.appendChild(div);
+        }
+
+        function renderQuestionScreen() {
+            const q = questions[state.qIndex];
+            const progress = ((state.qIndex + 1) / questions.length) * 100;
+
+            const div = document.createElement('div');
+            div.className = "flex-1 flex flex-col max-w-xl mx-auto w-full py-8 px-4 font-serif fade-in";
+            div.innerHTML = `
+                <div class="flex items-center justify-between mb-8 opacity-90">
+                    <div class="flex flex-col">
+                        <span class="text-xs tracking-widest text-ny-navy mb-1">AI CHARACTER DIAGNOSIS</span>
+                        <h2 class="text-2xl font-black text-ny-navy flex items-baseline gap-2">
+                            <span class="text-sm font-normal">第</span><span class="text-4xl text-ny-red font-serif">${state.qIndex + 1}</span><span class="text-sm font-normal">問</span>
+                        </h2>
+                    </div>
+                    <div class="w-32 h-1 bg-gray-200 rounded-full overflow-hidden"><div class="h-full bg-ny-red transition-all duration-300" style="width: ${progress}%"></div></div>
+                </div>
+
+                <div class="bg-white border-t-4 border-ny-red border-b border-x border-gray-200 shadow-xl p-8 mb-8 relative rounded-sm">
+                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-1 h-6 bg-ny-red"></div>
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-ny-red bg-ny-cream"></div>
+                    <h2 class="text-xl md:text-2xl font-medium text-ny-navy leading-relaxed text-center tracking-wide">${q.question}</h2>
+                    <div class="absolute bottom-0 left-0 w-full h-2 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+CjxwYXRoIGQ9Ik0wLDEwIEM1LDEwIDUsNSAxMCw1IEMxNSw1IDE1LDEwIDIwLDEwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4=')]"></div>
+                </div>
+
+                <div class="space-y-4">
+                    ${q.answers.map((ans, i) => `
+                        <button onclick='selectAnswer(${JSON.stringify(ans.scores)}, ${i})' 
+                                class="group w-full bg-white border border-gray-200 hover:border-ny-gold rounded-lg p-5 text-left shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex items-center gap-5">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full border border-ny-navy text-ny-navy font-serif flex items-center justify-center text-sm group-hover:bg-ny-navy group-hover:text-white transition-colors">${i + 1}</div>
+                            <span class="font-medium text-gray-800 text-lg flex-1 tracking-wide group-hover:text-ny-navy">${ans.text}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            app.appendChild(div);
+        }
+
+        function renderRevealScreen() {
+            const div = document.createElement('div');
+            div.className = "flex-1 flex flex-col items-center justify-center p-6 text-center w-full h-full min-h-[70vh] fade-in";
+            div.innerHTML = `
+                <div class="mb-8 cursor-pointer relative animate-float" onclick="showResult()">
+                    <div class="text-[100px] md:text-[120px] filter drop-shadow-xl">🧧</div>
+                    <div class="absolute top-0 right-0 text-4xl animate-bounce">✨</div>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-ny-navy mb-6 bg-white border-2 border-ny-navy px-8 py-3 rounded-full shadow font-serif">
+                    診断結果が届いています！
+                </h2>
+                <button onclick="showResult()" class="btn-festive-primary w-full max-w-xs font-serif text-xl">
+                    開封する
+                </button>
+            `;
+            app.appendChild(div);
+        }
+
+        function renderResultScreen() {
+            const r = state.result;
+            const c = r.character;
+            const f = r.fortuneDetail;
+
+            const div = document.createElement('div');
+            div.className = "flex-1 w-full max-w-2xl mx-auto pb-48 px-4 font-serif fade-in";
+
+            // Helper for color logic
+            const getCssColor = (name) => {
+                const map = { "金色": "#FFD700", "赤": "#ff2a2a", "青": "#2196F3", "緑": "#4CAF50", "紫": "#9C27B0", "オレンジ": "#FF9800", "ピンク": "#E91E63", "白": "#FFFFFF" };
+                return map[name] || "#999999";
+            };
+
+            div.innerHTML = `
+                <!-- Fortune Card -->
+                <div class="bg-ny-cream border-4 border-ny-red p-1 mb-8 shadow-lg relative rounded-sm mx-auto max-w-md md:max-w-full">
+                    <div class="border border-ny-red p-6 flex flex-col items-center justify-center relative">
+                        <!-- Corners -->
+                        <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-ny-red"></div>
+                        <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-ny-red"></div>
+                        <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-ny-red"></div>
+                        <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-ny-red"></div>
+
+                        <h3 class="text-center text-ny-navy font-black text-lg mb-6 tracking-[0.3em] border-b border-gray-300 pb-2">二〇二六年 運勢</h3>
+                        <div class="text-center mb-8">
+                            <div class="inline-block px-12 py-4 bg-white border-4 border-ny-red shadow-[6px_6px_0_0_rgba(201,42,42,0.2)]">
+                                <span class="text-6xl md:text-8xl font-black text-ny-red tracking-widest leading-none">${f.fortune}</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 w-full">
+                            <div class="flex flex-col items-center justify-center p-4 bg-red-50 rounded-xl border border-red-100 text-center">
+                                <span class="text-xs font-bold text-red-500 uppercase tracking-widest mb-1">ラッキー月</span>
+                                <span class="text-3xl font-black text-ny-navy">${f.luckyMonth}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex flex-col items-center justify-center p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-center">
+                                    <span class="text-xs font-bold text-yellow-600 uppercase tracking-widest mb-1">ラッキーカラー</span>
+                                    <div class="flex items-center justify-center gap-2 mt-1">
+                                        <div class="w-5 h-5 rounded-full shadow-sm border border-gray-200" style="background-color: ${getCssColor(f.luckyColor)}"></div>
+                                        <span class="text-xl font-black text-ny-navy">${f.luckyColor}</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">
+                                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">ラッキーアクション</span>
+                                    <span class="text-sm md:text-base font-black text-ny-navy leading-tight mt-1">${f.luckyAction}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Character Hero -->
+                <div class="card-festive mb-8 p-0 border-ny-navy border-4 shadow-2xl">
+                    <div class="bg-ny-navy text-white text-center py-3 font-bold tracking-[0.2em] border-b-4 border-ny-red text-sm md:text-base relative overflow-hidden">
+                        <span class="relative z-10">令和八年 新春AI診断</span>
+                    </div>
+                    <div class="p-6 md:p-10 flex flex-col items-center text-center relative" style="background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');">
+                        <div class="inline-block bg-ny-red text-white px-6 py-1 rounded-full font-black mb-4 text-xs tracking-widest shadow-md">あなたのタイプ</div>
+                        <h2 class="text-4xl md:text-5xl font-black text-ny-navy mb-4 leading-tight tracking-tight">${c.name}</h2>
+                        <div class="text-lg md:text-xl font-bold text-ny-red mb-8 border-b border-gray-200 pb-2 tracking-widest">${c.title}</div>
+                        <div class="w-64 h-64 md:w-80 md:h-80 relative mb-8">
+                             <!-- Glow -->
+                             <div class="absolute inset-0 bg-ny-gold rounded-full blur-3xl opacity-20 animate-pulse-slow"></div>
+                             <img src="${c.image}" alt="${c.name}" class="relative w-full h-full object-contain filter drop-shadow-xl hover:scale-105 transition-transform duration-500">
+                        </div>
+                        <p class="text-ny-navy font-bold leading-loose text-center text-base md:text-lg bg-white/95 p-8 rounded-xl border-2 border-ny-gold shadow-md relative z-10">${c.description}</p>
+                    </div>
+                </div>
+
+                <!-- Traits -->
+                <div class="card-festive p-8 mb-8 relative overflow-hidden">
+                    <div class="flex items-center gap-4 mb-6 pb-2 border-b border-gray-200">
+                        <img src="./sticker_traits_v2.jpg" alt="Traits" class="w-24 h-24 object-contain -ml-2 filter drop-shadow-md">
+                        <h3 class="font-black text-ny-navy text-lg tracking-widest mt-2">あなたの特徴</h3>
+                    </div>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${c.detailedTraits.map(t => `<li class="flex items-center gap-3 bg-ny-cream p-3 rounded-lg border border-gray-200"><span class="text-ny-red font-bold">✔</span><span class="text-ny-navy font-bold text-sm">${t}</span></li>`).join('')}
+                    </ul>
+                </div>
+
+                <!-- Strengths / Weaknesses -->
+                <div class="card-festive p-8 mb-8 bg-[#fcfcfc] shadow-sm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div>
+                            <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-200">
+                                <img src="./sticker_good.png" class="w-8 h-8 object-contain">
+                                <h3 class="font-black text-ny-navy text-lg tracking-widest">長所・強み</h3>
+                            </div>
+                            <ul class="space-y-4">${c.strengths.map(s => `<li class="flex items-start gap-3 text-gray-700 text-sm"><span class="text-ny-gold mt-0.5 text-lg">✦</span><span class="font-bold border-b border-gray-100 pb-1 w-full">${s}</span></li>`).join('')}</ul>
+                        </div>
+                        <div>
+                             <div class="flex items-center gap-3 mb-6 pb-2 border-b border-gray-200">
+                                <img src="./sticker_careful.png" class="w-8 h-8 object-contain">
+                                <h3 class="font-black text-ny-red text-lg tracking-widest">注意点</h3>
+                            </div>
+                            <ul class="space-y-4">${c.weaknesses.map(w => `<li class="flex items-start gap-3 text-gray-700 text-sm"><span class="text-ny-red mt-0.5 text-lg">⚠</span><span class="font-bold border-b border-gray-100 pb-1 w-full">${w}</span></li>`).join('')}</ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advice -->
+                <div class="card-festive p-6 flex flex-col md:flex-row items-start md:items-center gap-6 border-l-8 border-l-ny-red mb-8">
+                     <img src="./sticker_advice.png" class="w-24 h-24 object-contain -ml-2 filter drop-shadow-md">
+                     <div>
+                        <h3 class="font-black text-ny-red text-lg mb-2 flex items-center gap-2"><span class="w-2 h-2 bg-ny-red rounded-full"></span>2026年開運アドバイス</h3>
+                        <p class="font-bold text-gray-700 leading-relaxed text-sm">${c.advice2026}</p>
+                     </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="card-festive p-8 relative overflow-hidden">
+                    <div class="flex items-center gap-4 mb-6 relative z-10 border-b border-gray-200 pb-2">
+                         <img src="./sticker_tools_v2.png" class="w-24 h-24 object-contain -ml-2 filter drop-shadow-md">
+                         <h3 class="font-black text-ny-navy text-xl tracking-widest mt-2">ラッキーAIツール</h3>
+                    </div>
+                    <div class="flex flex-wrap gap-3 relative z-10">
+                        ${c.luckyAITools.map(t => `<span class="bg-ny-navy text-white px-5 py-3 rounded-full font-bold shadow-md">${t}</span>`).join('')}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col gap-4 mt-12 sticky bottom-6 z-30">
+                    <button onclick="shareResult('${c.name}', '${f.fortune}')" class="btn-festive-primary w-full shadow-[0_4px_15px_rgba(201,42,42,0.4)] bg-black border-black text-white hover:bg-gray-800">
+                         <svg class="w-5 h-5 mr-2 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                         Xで結果をシェア
+                    </button>
+                    <button onclick="startGame()" class="btn-festive-secondary w-full py-4 text-gray-800 bg-white/90 backdrop-blur-md border-gray-400">
+                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                         最初に戻る
+                    </button>
+                </div>
+                
+                 <footer class="mt-12 mb-20 text-center text-ny-navy/40 text-xs tracking-widest">© 2026 AI NEW YEAR PROJECT</footer>
+            `;
+            app.appendChild(div);
+        }
+
+        // Global share function
+        function shareResult(name, fortune) {
+            const text = `🎍令和八年・新春AI診断🎍\n私は【${name}】でした！\n運勢: ${fortune}\n2026年のAI運勢を占おう！`;
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(twitterUrl, '_blank');
+        }
+
+        // Start App
+        render();
+
+    </script>
+</body>
+
+</html>
